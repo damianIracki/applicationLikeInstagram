@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Like Instagram</string>
+    <string name="log_in">LogIn</string>
+    <string name="register">Register</string>
+    <string name="already_user">Already a user? LogIn</string>
+    <string name="username">Username</string>
+    <string name="name">Name</string>
+    <string name="password">Password</string>
+    <string name="email">Email</string>
+    <string name="empty_credentials">Empty credentials!</string>
+    <string name="password_too_short">Password too short!</string>
+    <string name="update_profile_request">Update the profile for better experiences</string>
+    <string name="please_wait">Please Wait</string>
+    <string name="do_not_have_account">Are you don"t have account? Register</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+</resources>
