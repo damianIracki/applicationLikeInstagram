@@ -60,7 +60,6 @@ public class PostActivity extends AppCompatActivity {
         txtPost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 upload();
             }
         });
@@ -70,7 +69,7 @@ public class PostActivity extends AppCompatActivity {
     private void upload() {
 
         ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Uploadding");
+        progressDialog.setMessage("Uploading");
         progressDialog.show();
 
         if(imageUri != null){
