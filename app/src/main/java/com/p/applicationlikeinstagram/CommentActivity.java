@@ -20,6 +20,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.p.applicationlikeinstagram.Adapter.CommentAdapter;
@@ -63,17 +64,18 @@ public class CommentActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        Intent intent = getIntent();
+        postId = intent.getStringExtra("postId");
+        authorId = intent.getStringExtra("authorId");
+
         commentList = new ArrayList<>();
-        commentAdapter = new CommentAdapter(this, commentList);
+        commentAdapter = new CommentAdapter(this, commentList, postId);
         recyclerView.setAdapter(commentAdapter);
 
         eTxtAddComment = findViewById(R.id.add_comment);
         civImageProfile = findViewById(R.id.image_profile);
         txtPost = findViewById(R.id.post);
 
-        Intent intent = getIntent();
-        postId = intent.getStringExtra("postId");
-        authorId = intent.getStringExtra("authorId");
 
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -114,11 +116,19 @@ public class CommentActivity extends AppCompatActivity {
     }
 
     private void putComment() {
+
         HashMap<String, Object> map = new HashMap<>();
+
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child("Comments").child(postId);
+
+        String id = reference.push().getKey();
+
+        map.put("id", id);
         map.put("comment", eTxtAddComment.getText().toString());
         map.put("publisher", firebaseUser.getUid());
 
-        FirebaseDatabase.getInstance().getReference().child("Comments").child(postId).push().setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+
+        reference.child(id).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()){

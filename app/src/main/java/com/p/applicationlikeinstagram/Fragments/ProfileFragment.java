@@ -1,5 +1,6 @@
 package com.p.applicationlikeinstagram.Fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -8,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -31,6 +33,7 @@ public class ProfileFragment extends Fragment {
     private CircleImageView civImageProfile;
     private ImageView ivOptions, ivMyPictures, ivSavedPictures;
     private TextView txtPosts, txtFollowers, txtFollowing, txtFullName, txtBio, txtUsername;
+    private Button btEditProfile;
 
     private FirebaseUser firebaseUser;
     private String profileId;
@@ -50,15 +53,71 @@ public class ProfileFragment extends Fragment {
         txtFullName = view.findViewById(R.id.full_name);
         txtBio = view.findViewById(R.id.bio);
         txtUsername = view.findViewById(R.id.username);
+        btEditProfile = view.findViewById(R.id.edit_profile);
 
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        profileId = firebaseUser.getUid();
+
+        String data = getContext().getSharedPreferences("PROFILE", Context.MODE_PRIVATE).getString("profileId", "none");
+        if(data.equals("none")){
+            profileId = firebaseUser.getUid();
+        } else {
+            profileId = data;
+        }
+
 
         userInfo();
         getFollowersAndFollowingCount();
         getPostsCount();
 
+        if(profileId.equals(firebaseUser.getUid())){
+            btEditProfile.setText("Edit Profile");
+        } else {
+            checkFollowingStatus();
+        }
+
+        btEditProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String btnText = btEditProfile.getText().toString();
+                if(btnText.equals("Edit Profile")){
+                    // GOTO edit profile
+                } else if(btnText.equals("follow")){
+                    FirebaseDatabase.getInstance().getReference().child("Follow")
+                            .child(firebaseUser.getUid()).child("following").child(profileId)
+                            .setValue(true);
+                    FirebaseDatabase.getInstance().getReference().child("Follow").child(profileId)
+                            .child("followers").child(firebaseUser.getUid()).setValue(true);
+
+                } else if(btnText.equals("following")){
+                    FirebaseDatabase.getInstance().getReference().child("Follow")
+                            .child(firebaseUser.getUid()).child("following").child(profileId)
+                            .removeValue();
+                    FirebaseDatabase.getInstance().getReference().child("Follow").child(profileId)
+                            .child("followers").child(firebaseUser.getUid()).removeValue();
+                }
+            }
+        });
+
         return view;
+    }
+
+    private void checkFollowingStatus() {
+        FirebaseDatabase.getInstance().getReference().child("Follow").child(firebaseUser.getUid())
+                .child("following").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(snapshot.child(profileId).exists()){
+                    btEditProfile.setText("following");
+                } else {
+                    btEditProfile.setText("follow");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
     private void getPostsCount() {
