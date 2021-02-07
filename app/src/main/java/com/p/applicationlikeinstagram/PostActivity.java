@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.webkit.MimeTypeMap;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,11 +20,16 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
+import com.hendraanggrian.appcompat.socialview.Hashtag;
+import com.hendraanggrian.appcompat.widget.HashtagArrayAdapter;
 import com.hendraanggrian.appcompat.widget.SocialAutoCompleteTextView;
 import com.theartofdev.edmodo.cropper.CropImage;
 
@@ -111,7 +117,7 @@ public class PostActivity extends AppCompatActivity {
                             map.put("tag", tag.toLowerCase());
                             map.put("postId", postId);
 
-                            mHashTagRef.child(tag.toLowerCase()).setValue(map);
+                            mHashTagRef.child(tag.toLowerCase()).child(postId).setValue(map);
                         }
                     }
 
@@ -148,5 +154,27 @@ public class PostActivity extends AppCompatActivity {
             startActivity(new Intent(PostActivity.this, MainActivity.class));
             finish();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        ArrayAdapter<Hashtag> hashTagAdapter = new HashtagArrayAdapter<>(getApplicationContext());
+
+        FirebaseDatabase.getInstance().getReference().child("HashTags").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for(DataSnapshot dataSnapshot : snapshot.getChildren()){
+                    hashTagAdapter.add(new Hashtag(dataSnapshot.getKey(), (int) dataSnapshot.getChildrenCount()));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+        autoTxtDescription.setHashtagAdapter(hashTagAdapter);
     }
 }

@@ -56,7 +56,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder>{
         holder.txtUsername.setText(user.getUsername());
         holder.txtFullName.setText(user.getName());
 
-        Picasso.get().load(user.getImageUrl()).placeholder(R.mipmap.ic_launcher).into(holder.circleImgImageProfile);
+        Picasso.get().load(user.getImageurl()).placeholder(R.mipmap.ic_launcher).into(holder.circleImgImageProfile);
 
         isFollowed(user.getId(), holder.btnFollow);
 
@@ -64,6 +64,24 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder>{
             holder.btnFollow.setVisibility(View.GONE);
         }
 
+        holder.btnFollow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(holder.btnFollow.getText().toString().equals("follow")){
+                    FirebaseDatabase.getInstance().getReference().child("Follow").child(firebaseUser.getUid())
+                            .child("following").child(user.getId()).setValue(true);
+
+                    FirebaseDatabase.getInstance().getReference().child("Follow").child(user.getId())
+                            .child("followers").child(firebaseUser.getUid()).setValue(true);
+                } else {
+                    FirebaseDatabase.getInstance().getReference().child("Follow").child(firebaseUser.getUid())
+                            .child("following").child(user.getId()).removeValue();
+
+                    FirebaseDatabase.getInstance().getReference().child("Follow").child(user.getId())
+                            .child("followers").child(firebaseUser.getUid()).removeValue();
+                }
+            }
+        });
     }
 
     private void isFollowed(String id, final Button btnFollow) {
@@ -72,9 +90,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder>{
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if(snapshot.child(id).exists()){
-                    btnFollow.setText("Following");
+                    btnFollow.setText("following");
                 } else {
-                    btnFollow.setText("Follow");
+                    btnFollow.setText("follow");
                 }
             }
 
