@@ -1,6 +1,7 @@
 package com.p.applicationlikeinstagram.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +9,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -17,10 +19,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.p.applicationlikeinstagram.Fragments.ProfileFragment;
+import com.p.applicationlikeinstagram.MainActivity;
 import com.p.applicationlikeinstagram.Model.User;
 import com.p.applicationlikeinstagram.R;
 import com.squareup.picasso.Picasso;
 
+import java.util.HashMap;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -73,12 +78,31 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder>{
 
                     FirebaseDatabase.getInstance().getReference().child("Follow").child(user.getId())
                             .child("followers").child(firebaseUser.getUid()).setValue(true);
+
+                    addNotification(user.getId());
                 } else {
                     FirebaseDatabase.getInstance().getReference().child("Follow").child(firebaseUser.getUid())
                             .child("following").child(user.getId()).removeValue();
 
                     FirebaseDatabase.getInstance().getReference().child("Follow").child(user.getId())
                             .child("followers").child(firebaseUser.getUid()).removeValue();
+                }
+            }
+        });
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(isFragment == true){
+                    mContext.getSharedPreferences("PROFILE", Context.MODE_PRIVATE).edit()
+                            .putString("profileId", user.getId()).apply();
+
+                    ((FragmentActivity)mContext).getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.fragment_container, new ProfileFragment()).commit();
+                } else {
+                    Intent intent = new Intent(mContext, MainActivity.class);
+                    intent.putExtra("publisherId", user.getId());
+                    mContext.startActivity(intent);
                 }
             }
         });
@@ -122,8 +146,18 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder>{
             txtUsername = itemView.findViewById(R.id.txt_username);
             txtFullName = itemView.findViewById(R.id.txt_full_name);
             btnFollow = itemView.findViewById(R.id.btn_follow);
-
-
         }
+    }
+
+    private void addNotification(String userId) {
+
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("userId", userId);
+        map.put("text", "following you");
+        map.put("postId", "");
+        map.put("isPost", false);
+
+        FirebaseDatabase.getInstance().getReference().child("Notifications").child(firebaseUser.getUid())
+                .push().setValue(map);
     }
 }

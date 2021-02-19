@@ -20,6 +20,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.hendraanggrian.appcompat.widget.SocialTextView;
 import com.p.applicationlikeinstagram.CommentActivity;
+import com.p.applicationlikeinstagram.FollowersActivity;
 import com.p.applicationlikeinstagram.Fragments.PostDetailFragment;
 import com.p.applicationlikeinstagram.Fragments.ProfileFragment;
 import com.p.applicationlikeinstagram.Model.Post;
@@ -27,6 +28,7 @@ import com.p.applicationlikeinstagram.Model.User;
 import com.p.applicationlikeinstagram.R;
 import com.squareup.picasso.Picasso;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
@@ -88,6 +90,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 if(holder.ivLike.getTag().equals("like")){
                     FirebaseDatabase.getInstance().getReference().child("Likes").child(post.getPostId())
                             .child(firebaseUser.getUid()).setValue(true);
+
+                    addNotification(post.getPostId(), post.getPublisher());
                 } else {
                     FirebaseDatabase.getInstance().getReference().child("Likes").child(post.getPostId())
                             .child(firebaseUser.getUid()).removeValue();
@@ -167,7 +171,19 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                          .replace(R.id.fragment_container, new PostDetailFragment()).commit();
              }
          });
+
+        holder.txtNoOfLikes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, FollowersActivity.class);
+                intent.putExtra("id", post.getPublisher());
+                intent.putExtra("title", "likes");
+                mContext.startActivity(intent);
+            }
+        });
+
     }
+
 
     @Override
     public int getItemCount() {
@@ -269,6 +285,17 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
             }
         });
+    }
+
+    private void addNotification(String postId, String publisherId) {
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("userId", publisherId);
+        map.put("text", "liked your post.");
+        map.put("postId", postId);
+        map.put("isPost" , true);
+
+        FirebaseDatabase.getInstance().getReference().child("Notifications").child(firebaseUser.getUid())
+                .push().setValue(map);
     }
 
 }
